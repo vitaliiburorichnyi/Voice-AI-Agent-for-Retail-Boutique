@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Boutique Voice AI Agent — Architecture</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0a0f;
+      color: #e8e8f0;
+      font-family: 'Syne', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    header h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: #6b7280;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      margin-top: 8px;
+    }
+
+    .diagram {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .box {
+      border-radius: 12px;
+      padding: 16px 24px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-align: center;
+      min-width: 160px;
+      position: relative;
+    }
+
+    .box-call {
+      background: linear-gradient(135deg, #1e1b4b, #312e81);
+      border: 1px solid #4f46e5;
+      color: #a5b4fc;
+    }
+
+    .box-agent {
+      background: linear-gradient(135deg, #1a1a2e, #16213e);
+      border: 2px solid #a78bfa;
+      color: #c4b5fd;
+      min-width: 220px;
+      padding: 20px 28px;
+    }
+
+    .box-agent .label {
+      font-size: 0.7rem;
+      color: #6b7280;
+      font-family: 'Space Mono', monospace;
+      margin-bottom: 4px;
+    }
+
+    .box-agent .name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #a78bfa;
+    }
+
+    .box-n8n {
+      background: linear-gradient(135deg, #1c1917, #292524);
+      border: 1px solid #ea580c;
+      color: #fb923c;
+    }
+
+    .box-sheets {
+      background: linear-gradient(135deg, #052e16, #14532d);
+      border: 1px solid #16a34a;
+      color: #4ade80;
+    }
+
+    .box-sip {
+      background: linear-gradient(135deg, #1e1b4b, #1e3a5f);
+      border: 1px solid #0ea5e9;
+      color: #38bdf8;
+    }
+
+    .arrow {
+      color: #374151;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+
+    .arrow-down {
+      text-align: center;
+      color: #374151;
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    .tools-section {
+      max-width: 900px;
+      margin: 48px auto 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .tool-card {
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #1f2937;
+      background: #111118;
+    }
+
+    .tool-card .tool-tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+
+    .tag-before { background: #1e1b4b; color: #818cf8; border: 1px solid #3730a3; }
+    .tag-during { background: #1c1917; color: #fb923c; border: 1px solid #92400e; }
+    .tag-after  { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+
+    .tool-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #e8e8f0;
+    }
+
+    .tool-card p {
+      font-size: 0.8rem;
+      color: #6b7280;
+      line-height: 1.5;
+    }
+
+    .tool-card code {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: #9ca3af;
+      background: #1f2937;
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: block;
+      margin-top: 8px;
+    }
+
+    .metrics {
+      max-width: 900px;
+      margin: 48px auto 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: #111118;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .metric-card .value {
+      font-size: 2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a78bfa, #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .metric-card .label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 4px;
+      font-family: 'Space Mono', monospace;
+    }
+
+    .section-title {
+      max-width: 900px;
+      margin: 48px auto 16px;
+      font-size: 0.75rem;
+      font-family: 'Space Mono', monospace;
+      color: #4b5563;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      color: #374151;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Voice AI Agent — Boutique</h1>
+    <p>Happ.tools + n8n + Google Sheets · Built for retail inbound call automation</p>
+  </header>
+
+  <div class="section-title">System Architecture</div>
+
+  <div class="diagram">
+    <div class="row">
+      <div class="box box-sip">📞 Incoming Call<br><small style="font-size:0.7rem;color:#0ea5e9">SIP / Zadarma</small></div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="row">
+      <div class="box box-agent">
+        <div class="label">Happ.tools</div>
+        <div class="name">🎙️ Anika</div>
+        <div style="font-size:0.75rem;color:#7c3aed;margin-top:4px">Voice AI Agent</div>
+      </div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="row">
+      <div class="box box-n8n">⚡ n8n<br><small style="font-size:0.7rem">Workflow Automation</small></div>
+    </div>
+    <div class="arrow-down">↓</div>
+    <div class="row">
+      <div class="box box-sheets">📊 Google Sheets<br><small style="font-size:0.7rem">Orders · Call Log</small></div>
+    </div>
+  </div>
+
+  <div class="section-title">Integration Tools</div>
+
+  <div class="tools-section">
+    <div class="tool-card">
+      <span class="tool-tag tag-before">BEFORE CALL</span>
+      <h3>🔍 Init Tool</h3>
+      <p>Looks up caller phone in Orders sheet. Returns customer name, order ID, status, and delivery address.</p>
+      <code>POST /boutique-init</code>
+    </div>
+    <div class="tool-card">
+      <span class="tool-tag tag-during">DURING CALL</span>
+      <h3>📦 Change Address</h3>
+      <p>Updates delivery address in Google Sheets when customer requests a change during the call.</p>
+      <code>POST /boutique-change-address</code>
+    </div>
+    <div class="tool-card">
+      <span class="tool-tag tag-after">AFTER CALL</span>
+      <h3>📝 Postcall</h3>
+      <p>Extracts call summary, customer name, order ID and logs everything to Call Log sheet.</p>
+      <code>POST /boutique-postcall</code>
+    </div>
+  </div>
+
+  <div class="section-title">Test Results — 10 Scenarios</div>
+
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="value">100%</div>
+      <div class="label">Call Success Rate</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">30%</div>
+      <div class="label">Human Handoff Rate</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">~60s</div>
+      <div class="label">Avg Call Duration</div>
+    </div>
+    <div class="metric-card">
+      <div class="value">10/10</div>
+      <div class="label">Postcall Logged</div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Voice-AI-Agent-for-Retail-Boutique · github.com</p>
+  </footer>
+
+</body>
+</html>
