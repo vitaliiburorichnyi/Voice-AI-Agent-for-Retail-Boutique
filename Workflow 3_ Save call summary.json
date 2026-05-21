@@ -1,0 +1,185 @@
+{
+  "name": "Workflow 3: Save call summary",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Ht8uogACZD5lx563tHjGHk8NJefJE85fW5u43V80-qQ",
+          "mode": "list",
+          "cachedResultName": "Boutique Voice Agent",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ht8uogACZD5lx563tHjGHk8NJefJE85fW5u43V80-qQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1924265526,
+          "mode": "list",
+          "cachedResultName": "Call Log",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Ht8uogACZD5lx563tHjGHk8NJefJE85fW5u43V80-qQ/edit#gid=1924265526"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ new Date().toISOString() }}",
+            "phone": "={{ $json.conversation_initiation_client_data.dynamic_variables.phone_number }}",
+            "customer_name": "={{ $json.extracted_customer_name }}",
+            "order_id": "={{ $json.extracted_order_id }}",
+            "summary": "={{ $json.analysis.transcript_summary }}",
+            "outcome": "={{ $json.analysis.call_successful }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_name",
+              "displayName": "customer_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "summary",
+              "displayName": "summary",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outcome",
+              "displayName": "outcome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Postcall writes here",
+              "displayName": "Postcall writes here",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        32,
+        -16
+      ],
+      "id": "933a41f2-e442-4bb0-8acb-b7fc6b8fcbab",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "oDi6ORPTqHlbiIVZ",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "boutique-postcall",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -368,
+        -16
+      ],
+      "id": "dddbbee4-c378-4e2e-aa17-bedf7fa2ee98",
+      "name": "Webhook1",
+      "webhookId": "e830bea9-7cdd-47b0-b898-726efbf8941d"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\nconst summary = body.analysis?.transcript_summary ?? '';\n\n// Extract order_id - find any number pattern like #1042, 1042, etc.\nconst orderMatch = summary.match(/#?\\d{3,6}/);\nconst order_id = orderMatch ? orderMatch[0] : 'Не вказано';\n\n// Extract customer name - find \"user, NAME,\" pattern\nconst nameMatch = summary.match(/[Tt]he user,?\\s+([A-ZА-ЯІЇЄ][a-zа-яіїє]+)/);\nconst customer_name = nameMatch ? nameMatch[1] : 'Невідомий';\n\nreturn [{\n  json: {\n    ...body,\n    extracted_order_id: order_id,\n    extracted_customer_name: customer_name,\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -160,
+        -16
+      ],
+      "id": "0e467c36-48fb-4580-8c41-49d5492de2d6",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4ec7cdb1-3094-4fa7-b39e-3cb40af4cb5f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5709068543c0156ebc2af82bf3cfdc1166307f992df9023f2d1b686ab12fa60d"
+  },
+  "id": "ZLQWQ3jnS8lfUef2",
+  "tags": []
+}
